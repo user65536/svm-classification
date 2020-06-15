@@ -1,0 +1,15 @@
+{
+  "name": "svm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    
+  },
+  "scripts": {
+    "train": "node ./js/copy.js && python ./change_size.py && python hog_svm.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
