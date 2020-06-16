@@ -7,7 +7,7 @@
     
   },
   "scripts": {
-    "train": "node ./js/copy.js && python ./change_size.py && python hog_svm.py"
+    "feat": "node ./js && python ./change_size.py && python feat.py"
   },
   "keywords": [],
   "author": "",

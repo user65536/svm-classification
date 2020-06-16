@@ -7,9 +7,11 @@ from skimage.feature import hog
 import numpy as np
 import os
 import joblib
-from sklearn.svm import LinearSVC
+from sklearn import svm
+from sklearn.model_selection import GridSearchCV
 import shutil
 import sys
+import pandas as pd
 
 # 第一个是你的类别   第二个是类别对应的名称   输出结果的时候方便查看
 label_map = {
@@ -17,6 +19,9 @@ label_map = {
             1: '1',
              2: '2',
              3: '3',
+             4: '4',
+             5: '5',
+             6: '6',
              }
 # 训练集图片的位置
 train_image_path = 'train'
@@ -59,7 +64,7 @@ def get_feat(image_list, name_list, label_list, savePath):
             continue
         gray = rgb2gray(image) / 255.0
         # 这句话根据你的尺寸改改
-        fd = hog(gray, orientations=12,block_norm='L1', pixels_per_cell=[8, 8], cells_per_block=[4, 4], visualize=False,
+        fd = hog(gray, orientations=9,block_norm='L1', pixels_per_cell=[16, 16], cells_per_block=[4, 4], visualize=False,
                  transform_sqrt=True)
         fd = np.concatenate((fd, [label_list[i]]))
         fd_name = name_list[i] + '.feat'
@@ -122,14 +127,30 @@ def train_and_test():
         data = joblib.load(feat_path)
         features.append(data[:-1])
         labels.append(data[-1])
+    excel = np.insert(features, 0, values=labels, axis=1)
+    print(np.shape(features))
+    frame = pd.DataFrame(excel,
+                    #  index=['exp1','exp2','exp3','exp4'],
+                    #  columns=['jan2015','Fab2015','Mar2015','Apr2005']
+                     )
+    # print(frame)
+    frame.to_excel("data2.xlsx")
     print("Training a Linear LinearSVM Classifier.")
-    clf = LinearSVC()
+    # clf = svm.LinearSVC(penalty='l2', loss='squared_hinge', dual=True, tol=1e-4, C=1, multi_class='ovr', fit_intercept=True, intercept_scaling=1, class_weight=None, verbose=0, random_state=None, max_iter=1000)
+    clf = svm.SVC(C=0.1, class_weight={1: 7, 2: 1.83, 3: 3.17}, decision_function_shape='ovo',
+    gamma=0.001, kernel='linear')
+    # parameters = {'C':[0.001,0.003,0.006,0.009,0.01,0.04,0.08,0.1, 1],
+    #           'kernel':('linear', 'rbf'), 
+    #           'gamma':[0.001,0.005,0.1,0.15,0.20,0.23,0.27],
+    #           'decision_function_shape':['ovo','ovr'],
+    #           # 'class_weight':[{1:7,2:1.83,3:3.17}],
+    #          }
+    # clf = GridSearchCV(clf, parameters)
     clf.fit(features, labels)
     # 下面的代码是保存模型的
     if not os.path.exists(model_path):
         os.makedirs(model_path)
     joblib.dump(clf, model_path + 'model')
-    # 下面的代码是加载模型  可以注释上面的代码   直接进行加载模型  不进行训练
     # clf = joblib.load(model_path+'model')
     print("训练之后的模型存放在model文件夹中")
     # exit()

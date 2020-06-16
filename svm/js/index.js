@@ -1,36 +1,65 @@
-let fs = require('fs')
-// let request = require('request')
-const axios = require('axios').default
-const sharp = require('sharp')
-let path = require('path')
-// 下载单张图片 src是图片的网上地址 dest是你将这图片放在本地的路径 callback可以是下载之后的事}
-const downloadImage = (src, dest) => {
-  return axios
-    .get(src, {
-      responseType: 'stream',
-    })
-    .then((res) => {
-      res.data.pipe(fs.createWriteStream(dest))
-    })
+const fs = require('fs')
+const fse = require('fs-extra')
+const path = require('path')
+
+const dataCount = 50
+const typeCount = 5
+const trainPercent = 1
+const trainPath = path.resolve(__dirname, '../train')
+const testPath = path.resolve(__dirname, '../test')
+
+const translate = {
+  cane: 'dog',
+  cavallo: 'horse',
+  elefante: 'elephant',
+  farfalla: 'butterfly',
+  gallina: 'chicken',
+  gatto: 'cat',
+  mucca: 'cow',
+  pecora: 'sheep',
+  scoiattolo: 'squirrel',
+  dog: 'cane',
+  cavallo: 'horse',
+  elephant: 'elefante',
+  butterfly: 'farfalla',
+  chicken: 'gallina',
+  cat: 'gatto',
+  cow: 'mucca',
+  spider: 'ragno',
+  squirrel: 'scoiattolo',
 }
 
-const downloadSet = async (srcs, name) => {
-  let count = 0
-  for (let src of srcs) {
-    try {
-      if (!src) {
-        continue
-      }
-      const ext = path.extname(src)
-      const dest = path.resolve(__dirname, '../data', `${name} ${count}${ext}`)
-      count++
-      await downloadImage(src, dest)
-    } catch (e) {
-      continue
+fse.removeSync(trainPath)
+fse.removeSync(testPath)
+fs.mkdirSync(trainPath)
+fs.mkdirSync(testPath)
+
+const rawImgPath = path.resolve(__dirname, '../raw-img')
+const rawDir = fs.readdirSync(rawImgPath)
+
+function append(dir, name, type, buffer) {
+  const txt = `${name} ${type}\n`
+  const txtPath = path.join(dir, 'train.txt')
+  fs.writeFileSync(txtPath, txt, {
+    flag: 'a+',
+  })
+  fs.writeFileSync(path.join(dir, name), buffer)
+}
+
+
+
+for (let i = 0; i < typeCount; i++) {
+  const currentPath = path.join(rawImgPath, rawDir[i])
+  const currentDir = fs.readdirSync(currentPath)
+  for (let j = 0; j < dataCount; j++) {
+    const fileName = currentDir[j]
+    const buffer = fs.readFileSync(path.join(currentPath, fileName))
+    if (j < dataCount * trainPercent) {
+      append(trainPath, fileName, i, buffer)
+    } else {
+      append(testPath, fileName, i, buffer)
     }
   }
 }
 
-downloadSet(
-  ["http://img2.imgtn.bdimg.com/it/u=234293492,2964278454&fm=26&gp=0.jpg","http://img5.imgtn.bdimg.com/it/u=1267755794,1897874823&fm=26&gp=0.jpg","http://img2.imgtn.bdimg.com/it/u=1101519187,4188141197&fm=26&gp=0.jpg","http://img2.imgtn.bdimg.com/it/u=2834935617,4277417703&fm=26&gp=0.jpg","http://img1.imgtn.bdimg.com/it/u=1012763108,3852168627&fm=26&gp=0.jpg","http://img3.imgtn.bdimg.com/it/u=2072494435,853546208&fm=26&gp=0.jpg","http://img1.imgtn.bdimg.com/it/u=1373836203,6561826&fm=26&gp=0.jpg","http://img5.imgtn.bdimg.com/it/u=2069266298,515098533&fm=26&gp=0.jpg","http://img5.imgtn.bdimg.com/it/u=1909905766,4220135021&fm=26&gp=0.jpg","http://img5.imgtn.bdimg.com/it/u=282781276,2855056135&fm=26&gp=0.jpg"],  'cat'
-).then(console.log)
+console.log('done')
