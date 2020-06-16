@@ -3,7 +3,7 @@ const fse = require('fs-extra')
 const path = require('path')
 
 const dataCount = 50
-const typeCount = 5
+const typeCount = 6
 const trainPercent = 1
 const trainPath = path.resolve(__dirname, '../train')
 const testPath = path.resolve(__dirname, '../test')

@@ -3,6 +3,7 @@ import numpy as np
 from sklearn import svm
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 dataset1=pd.read_excel('./data.xlsx')
 # print(dataset1.iloc[1, 1])
@@ -31,7 +32,6 @@ print(len(y_train), len(y_test))
 clf = GridSearchCV(svr, parameters)
 clf.fit(X_train, y_train)
 
-
 #使用a储存调优后的参数结果
 # a=pd.DataFrame(clf.cv_results_[])
 
@@ -41,10 +41,5 @@ clf.fit(X_train, y_train)
 #输出最好的分类器参数，以及测试集的平均分类正确率
 clf.best_estimator_,clf.best_score_
 print(clf.best_estimator_, clf.best_score_)
-
-
-'''结果：(SVC(C=0.1, cache_size=200, class_weight={1: 7, 2: 1.83, 3: 3.17}, coef0=0.0,
-   decision_function_shape='ovo', degree=3, gamma=0.2, kernel='rbf',
-   max_iter=-1, probability=False, random_state=None, shrinking=True,
-   tol=0.001, verbose=False), 0.53831417624521072)'''
-
+print('训练集准确率', accuracy_score(y_train, clf.predict(X_train)))
+print('测试集准确率', accuracy_score(y_test, clf.predict(X_test)))
